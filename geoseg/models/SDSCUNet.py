@@ -625,11 +625,18 @@ class ShuntedUnet(nn.Module):
         self.num_classes = num_classes
         self.zero_head = zero_head
 
-        self.shunted_unet = ShuntedTransformerSys(patch_size=4,num_classes=self.num_classes, embed_dims=[64, 128, 256, 512], num_heads=[2, 4, 8, 16],num_heads_up=[16, 8, 4, 2], mlp_ratios=[8, 8, 4, 4], qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6),
-         depths = tiny, 
-         sr_ratios=[8, 4, 2, 1], 
-         num_conv=0)
+        self.shunted_unet = ShuntedTransformerSys(img_size=img_size,
+                                                  patch_size=4,
+                                                  num_classes=self.num_classes,
+                                                  embed_dims=[64, 128, 256, 512],
+                                                  num_heads=[2, 4, 8, 16],
+                                                  num_heads_up=[16, 8, 4, 2],
+                                                  mlp_ratios=[8, 8, 4, 4],
+                                                  qkv_bias=True,
+                                                  norm_layer=partial(nn.LayerNorm, eps=1e-6),
+                                                  depths = tiny,
+                                                  sr_ratios=[8, 4, 2, 1],
+                                                  num_conv=0)
         
     def forward(self, x):
         if x.size()[1] == 1:
@@ -637,7 +644,7 @@ class ShuntedUnet(nn.Module):
         logits = self.shunted_unet(x)
         return logits
 
-    def load_from(self, pretrained_path='/home/zrh/code/data/ckpt_T.pth'):
+    def load_from(self, pretrained_path=r'D:\pretrained_weights/ckpt_T.pth'):
         if pretrained_path is not None:
             print("pretrained_path:{}".format(pretrained_path))
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -664,8 +671,8 @@ class ShuntedUnet(nn.Module):
             print("none pretrain")
 
 def create_shunted_unet_model(pretrained=True,
-        ckpt_path='/home/zrh/code/ckpt/ckpt_T.pth',n_classes=6):
-    model = ShuntedUnet(512,n_classes)
+        ckpt_path=r'D:\pretrained_weights/ckpt_T.pth',n_classes=6, img_size=512):
+    model = ShuntedUnet(img_size,n_classes)
 
     total_paramters = 0
     for  parameter in model.parameters():
@@ -684,7 +691,7 @@ if __name__ == "__main__":
 
 
     model = create_shunted_unet_model(pretrained=False,
-        ckpt_path='/mnt/sda/zrh/code/pretrained_ckpt/ckpt_T.pth',n_classes=6)
+        ckpt_path='D:\pretrained_weights/ckpt_T.pth',n_classes=2)
     x = torch.ones([1,3,512,512])
 
     res = model(x)
@@ -706,4 +713,8 @@ if __name__ == "__main__":
 
         # FLOPs: 29.8119 G
         # Params: 21.3197 M
-    
+        from calflops import calculate_flops
+
+        input_shape = (1, 3, 256, 256)
+        flops, macs, params = calculate_flops(model, input_shape, output_as_string=True, output_precision=4)
+        print('FLOPs: ', flops, 'MACs: ', macs, 'Params: ', params)

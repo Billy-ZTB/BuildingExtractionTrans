@@ -95,6 +95,15 @@ class Supervision_Train(pl.LightningModule):
         elif 'inria' in self.config.log_name:
             mIoU = np.nanmean(self.metrics_train.Intersection_over_Union()[:-1])
             F1 = np.nanmean(self.metrics_train.F1()[:-1])
+        elif 'NewInria' in self.config.log_name:
+            mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
+            F1 = np.nanmean(self.metrics_val.F1()[:-1])
+        elif 'CrowdAI' in self.config.log_name:
+            mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
+            F1 = np.nanmean(self.metrics_val.F1()[:-1])
+        elif 'CTC' in self.config.log_name:
+            mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
+            F1 = np.nanmean(self.metrics_val.F1()[:-1])
         else:
             mIoU = np.nanmean(self.metrics_train.Intersection_over_Union())
             F1 = np.nanmean(self.metrics_train.F1())
@@ -144,6 +153,15 @@ class Supervision_Train(pl.LightningModule):
             mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
             F1 = np.nanmean(self.metrics_val.F1()[:-1])
         elif 'inria' in self.config.log_name:
+            mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
+            F1 = np.nanmean(self.metrics_val.F1()[:-1])
+        elif 'NewInria' in self.config.log_name:
+            mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
+            F1 = np.nanmean(self.metrics_val.F1()[:-1])
+        elif 'CrowdAI' in self.config.log_name:
+            mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
+            F1 = np.nanmean(self.metrics_val.F1()[:-1])
+        elif 'CTC' in self.config.log_name:
             mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
             F1 = np.nanmean(self.metrics_val.F1()[:-1])
         else:
@@ -203,6 +221,7 @@ def main():
         model = Supervision_Train.load_from_checkpoint(config.pretrained_ckpt_path, config=config)
 
     trainer = pl.Trainer(devices=config.gpus, max_epochs=config.max_epoch, accelerator='gpu',
+                         precision=config.precision,
                          check_val_every_n_epoch=config.check_val_every_n_epoch,
                          callbacks=[checkpoint_callback], strategy=config.strategy,
                          resume_from_checkpoint=config.resume_ckpt_path, logger=logger,

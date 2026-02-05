@@ -1,11 +1,11 @@
 from torch.utils.data import DataLoader
 from geoseg.losses import *
-from geoseg.datasets.inria_dataset import *
+from geoseg.datasets.CrowdAI_dataset import *
 from catalyst.contrib.nn import Lookahead
 from catalyst import utils
 
 # training hparam
-max_epoch = 105
+max_epoch = 45
 ignore_index = 255
 train_batch_size = 8
 val_batch_size = 8
@@ -16,17 +16,17 @@ backbone_weight_decay = 0.0025
 accumulate_n = 1
 num_classes = len(CLASSES)
 classes = CLASSES
-
-weights_name = "0402-dsatnet-convnext-tiny"
-weights_path = "/home/zrh/datasets/build_log/inria/{}".format(weights_name)
+precision=16
+weights_name = "dsatnet-convnext-tiny-0204"
+weights_path = "D:/ZTB/Results/AdditonalExp/CrowdAI/{}".format(weights_name)
 test_weights_name = weights_name
-log_name = "/home/zrh/datasets/build_log/inria/{}".format(weights_name)
+log_name = "D:/ZTB/Results/AdditonalExp/CrowdAI/log/{}".format(weights_name)
 monitor = 'val_mIoU'
 monitor_mode = 'max'
 save_top_k = 5
 save_last = False
 check_val_every_n_epoch = 1
-gpus = [1]
+gpus = [0]
 strategy = None
 pretrained_ckpt_path = None
 resume_ckpt_path = None
@@ -41,9 +41,9 @@ use_aux_loss = False
 
 # define the dataloader
 
-train_dataset = InriaDataset(data_root="/home/zrh/data/datasets/build/inria/train_patches/", mode='train', mosaic_ratio=0.25, transform=get_training_transform())
-val_dataset = InriaDataset(data_root="/home/zrh/data/datasets/build/inria/val_patches/", mode='val', transform=get_validation_transform())
-test_dataset = InriaDataset(data_root="/home/zrh/data/datasets/build/inria/val_patches/", mode='val', transform=get_validation_transform())
+train_dataset = CrowdAIDataset(data_root="C:\ZTB\Dataset\CrowdAI_split", mode='train', mosaic_ratio=0.25, transform=get_training_transform())
+val_dataset = CrowdAIDataset(data_root="C:\ZTB\Dataset\CrowdAI_split", mode='valid', transform=get_validation_transform())
+test_dataset = CrowdAIDataset(data_root="C:\ZTB\Dataset\CrowdAI_split", mode='valid', transform=get_validation_transform())
 
 train_loader = DataLoader(dataset=train_dataset,
                           batch_size=train_batch_size,
