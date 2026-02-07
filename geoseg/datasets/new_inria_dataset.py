@@ -23,7 +23,7 @@ class NewInriaDataset(Dataset):
     def __init__(self, data_root=r'C:\ZTB\Dataset\NewInria', mode='train', img_dir='image', mask_dir='label',
                  img_suffix='.png', mask_suffix='.png', transform=None, mosaic_ratio=0.25,
                  img_size=ORIGIN_IMG_SIZE):
-        self.data_root = data_root
+        self.data_root = os.path.join(data_root, mode)
         self.img_dir = img_dir
         self.mask_dir = mask_dir
         self.img_suffix = img_suffix
