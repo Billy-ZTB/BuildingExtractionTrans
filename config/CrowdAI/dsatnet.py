@@ -43,7 +43,7 @@ use_aux_loss = False
 
 train_dataset = CrowdAIDataset(data_root="C:\ZTB\Dataset\CrowdAI_split", mode='train', mosaic_ratio=0.25, transform=get_training_transform())
 val_dataset = CrowdAIDataset(data_root="C:\ZTB\Dataset\CrowdAI_split", mode='valid', transform=get_validation_transform())
-test_dataset = CrowdAIDataset(data_root="C:\ZTB\Dataset\CrowdAI_split", mode='valid', transform=get_validation_transform())
+test_dataset = CrowdAIDataset(data_root="C:\ZTB\Dataset\CrowdAI_split", mode='test', transform=get_validation_transform())
 
 train_loader = DataLoader(dataset=train_dataset,
                           batch_size=train_batch_size,

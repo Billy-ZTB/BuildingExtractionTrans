@@ -31,6 +31,8 @@ def img_writer(inp):
         cv2.imwrite(mask_name_tif, mask_tif)
     else:
         mask_png = mask.astype(np.uint8)
+        mask_png[mask_png == 1] = 255
+        mask_png[mask_png == 0] = 0
         mask_name_png = mask_id + '.png'
         cv2.imwrite(mask_name_png, mask_png)
 
@@ -40,10 +42,22 @@ def get_args():
     arg = parser.add_argument
     arg("-c", "--config_path", type=Path, required=True, help="Path to  config")
     arg("-o", "--output_path", type=Path, help="Path where to save resulting masks.", required=True)
-    arg("-t", "--tta", help="Test time augmentation.", default="lr", choices=[None, "d4", "lr"])
+    arg("-t", "--tta", help="Test time augmentation.", default=None, choices=[None, "d4", "lr"])
     arg("--rgb", help="whether output rgb images", action='store_true')
     return parser.parse_args()
 
+def make_boundary(mask, dilation_ratio=0.02):
+    mask = mask.squeeze().astype(np.uint8)
+    h, w = mask.shape
+    img_diag = np.sqrt(h ** 2 + w ** 2)
+    dilation = int(round(dilation_ratio * img_diag))
+    if dilation < 1:
+        dilation = 1
+    new_mask = cv2.copyMakeBorder(mask, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0)
+    erosion = cv2.erode(new_mask, np.ones((3, 3), np.uint8), iterations=dilation)
+    mask_erosion = erosion[1:-1, 1:-1]
+    boundary = mask - mask_erosion
+    return boundary
 
 def main():
     args = get_args()
@@ -56,6 +70,8 @@ def main():
     model.eval()
     evaluator = Evaluator(num_class=config.num_classes)
     evaluator.reset()
+    b_evaluator = Evaluator(num_class=config.num_classes)
+    b_evaluator.reset()
     if args.tta == "lr":
         transforms = tta.Compose(
             [
@@ -99,11 +115,14 @@ def main():
 
             for i in range(raw_predictions.shape[0]):
                 raw_mask = predictions[i].cpu().numpy()
+                gt = masks_true[i].cpu().numpy()
                 mask = raw_mask
-
+                pred_boundary = make_boundary(mask)
+                gt_boundary = make_boundary(gt)
                 # print(mask.shape)
                 if 'gt_semantic_seg' in input.keys():
-                    evaluator.add_batch(pre_image=mask, gt_image=masks_true[i].cpu().numpy())
+                    evaluator.add_batch(pre_image=mask, gt_image=gt)
+                    b_evaluator.add_batch(pre_image=pred_boundary, gt_image=gt_boundary)
                 mask_name = image_ids[i]
                 results.append((mask, str(args.output_path / mask_name), args.rgb))
     t0 = time.time()
@@ -116,10 +135,17 @@ def main():
     OA = evaluator.OA()
     precision = evaluator.Precision()
     recall = evaluator.Recall()
-    for class_name, class_iou, class_f1 in zip(config.CLASSES, iou_per_class, f1_per_class):
-        print('F1_{}:{}, IOU_{}:{}'.format(class_name, class_f1, class_name, class_iou))
+    for class_name, class_iou, class_f1, class_pre, class_recall in zip(config.CLASSES, iou_per_class, f1_per_class, precision, recall):
+        print('F1_{}:{}, IOU_{}:{}, Precission:{}, Recall:{}'.format(class_name, class_f1, class_name, class_iou, class_pre, class_recall))
     print('F1:{}, mIOU:{}, OA:{}, P:{}, R:{}'.format(np.nanmean(f1_per_class[:-1]), np.nanmean(iou_per_class[:-1]), OA,
                                                      np.nanmean(precision[:-1]), np.nanmean(recall[:-1])))
+    b_iou_per_class = b_evaluator.Intersection_over_Union()
+    b_f1_per_class = b_evaluator.F1()
+    b_OA = b_evaluator.OA()
+    b_precision = b_evaluator.Precision()
+    b_recall = b_evaluator.Recall()
+    for boundary_iou, boundary_f1 in zip(b_iou_per_class, b_f1_per_class):
+        print('boundary_iou:{}, boundary_f1:{}'.format(boundary_iou, boundary_f1))
 
 if __name__ == "__main__":
     main()

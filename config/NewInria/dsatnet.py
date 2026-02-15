@@ -23,7 +23,11 @@ test_weights_name = weights_name
 log_name = "D:/ZTB/Results/AdditonalExp/NewInria/log/{}".format(weights_name)
 monitor = 'val_mIoU'
 monitor_mode = 'max'
-save_top_k = 5
+save_top_k = 10
+"""
+save_top_k = -1
+every_n_epochs = 1
+"""
 save_last = False
 check_val_every_n_epoch = 1
 gpus = [0]
@@ -43,7 +47,7 @@ use_aux_loss = False
 
 train_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='train', mosaic_ratio=0.25, transform=get_training_transform())
 val_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='valid', transform=get_validation_transform())
-test_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='valid', transform=get_validation_transform())
+test_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='test', transform=get_validation_transform())
 
 train_loader = DataLoader(dataset=train_dataset,
                           batch_size=train_batch_size,

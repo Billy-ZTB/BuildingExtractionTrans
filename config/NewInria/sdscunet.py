@@ -43,7 +43,7 @@ use_aux_loss = False
 
 train_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='train', mosaic_ratio=0.25, transform=get_training_transform())
 val_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='valid', transform=get_validation_transform())
-test_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='valid', transform=get_validation_transform())
+test_dataset = NewInriaDataset(data_root="C:/ZTB/Dataset/NewInria/", mode='test', transform=get_validation_transform())
 
 train_loader = DataLoader(dataset=train_dataset,
                           batch_size=train_batch_size,
